@@ -56,10 +56,10 @@ class DashboardFragment : Fragment() {
 
             // Tampilkan empty state jika list kosong
             if (list.isEmpty()) {
-                binding.tvEmpty.visibility = View.VISIBLE
+                binding.txtEmpty.visibility = View.VISIBLE
                 binding.recyclerView.visibility = View.GONE
             } else {
-                binding.tvEmpty.visibility = View.GONE
+                binding.txtEmpty.visibility = View.GONE
                 binding.recyclerView.visibility = View.VISIBLE
             }
         }
