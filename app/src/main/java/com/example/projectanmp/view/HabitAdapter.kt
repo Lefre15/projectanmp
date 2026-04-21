@@ -30,9 +30,9 @@ class HabitAdapter(
         val binding = holder.binding
 
         // Set teks
-        binding.tvHabitName.text = habit.name
-        binding.tvHabitDescription.text = habit.description
-        binding.tvProgressCount.text = "${habit.progress} / ${habit.goal} ${habit.unit}"
+        binding.habitName.text = habit.name
+        binding.habitDescription.text = habit.description
+        binding.progressCount.text = "${habit.progress} / ${habit.goal} ${habit.unit}"
 
         // Set icon berdasarkan string icon
         val iconRes = when (habit.icon) {
@@ -52,13 +52,13 @@ class HabitAdapter(
 
         // Set status label
         if (progress >= goal) {
-            binding.tvStatus.text = "Completed"
-            binding.tvStatus.setBackgroundColor(
+            binding.habitStatus.text = "Completed"
+            binding.habitStatus.setBackgroundColor(
                 context.getColor(android.R.color.holo_green_light)
             )
         } else {
-            binding.tvStatus.text = "In Progress"
-            binding.tvStatus.setBackgroundColor(
+            binding.habitStatus.text = "In Progress"
+            binding.habitStatus.setBackgroundColor(
                 context.getColor(android.R.color.holo_orange_light)
             )
         }
