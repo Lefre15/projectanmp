@@ -39,7 +39,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
     fun addHabit(habit: Habit) {
         val currentList = _habitList.value ?: mutableListOf()
         currentList.add(habit)
-        _habitList.value = currentList
+        _habitList.value = currentList.toMutableList()
         saveHabits()
     }
 
@@ -49,7 +49,7 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         val goal = habit.goal ?: return
         if ((habit.progress ?: 0) < goal) {
             habit.progress = (habit.progress ?: 0) + 1
-            _habitList.value = currentList
+            _habitList.value = currentList.toMutableList()
             saveHabits()
         }
     }
@@ -59,8 +59,42 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         val habit = currentList.find { it.id == habitId } ?: return
         if ((habit.progress ?: 0) > 0) {
             habit.progress = (habit.progress ?: 0) - 1
-            _habitList.value = currentList
+            _habitList.value = currentList.toMutableList()
             saveHabits()
         }
+    }
+
+    fun createHabit(
+        name: String,
+        desc: String,
+        goalText: String,
+        unit: String,
+        icon: String
+    ): Boolean {
+
+        if (name == "" || desc == "" || goalText == "" || unit == "" || icon == "") {
+            return false
+        }
+
+        val goal: Int
+
+        try {
+            goal = goalText.toInt()
+        } catch (e: Exception) {
+            return false
+        }
+
+        val habit = Habit(
+            id = (_habitList.value!!.size + 1).toString(),
+            name = name,
+            description = desc,
+            goal = goal,
+            unit = unit,
+            icon = icon,
+            progress = 0
+        )
+
+        addHabit(habit)
+        return true
     }
 }
