@@ -14,23 +14,22 @@ import com.example.projectanmp.viewmodel.HabitViewModel
 
 class NewHabitFragment : Fragment() {
 
-    private var _binding: FragmentNewHabitBinding? = null
-    private val binding get() = _binding!!
-
+    private lateinit var binding: FragmentNewHabitBinding
     private lateinit var viewModel: HabitViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentNewHabitBinding.inflate(inflater, container, false)
+        binding = FragmentNewHabitBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(requireActivity())[HabitViewModel::class.java]
+        viewModel = ViewModelProvider(requireActivity())
+            .get(HabitViewModel::class.java)
 
         setupSpinner()
         setupButton()
@@ -57,20 +56,29 @@ class NewHabitFragment : Fragment() {
             val unit = binding.txtUnit.text.toString()
             val icon = binding.spIcon.text.toString()
 
-            val success = viewModel.createHabit(name, desc, goalText, unit, icon)
+            val success = viewModel.createHabit(
+                name,
+                desc,
+                goalText,
+                unit,
+                icon
+            )
 
-            if (!success) {
-                Toast.makeText(context, "Input tidak valid", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            if (success == false) {
+                Toast.makeText(
+                    context,
+                    "Input tidak valid",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    context,
+                    "Habit berhasil ditambahkan",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                findNavController().popBackStack()
             }
-
-            Toast.makeText(context, "Habit berhasil ditambahkan", Toast.LENGTH_SHORT).show()
-            findNavController().popBackStack()
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }
