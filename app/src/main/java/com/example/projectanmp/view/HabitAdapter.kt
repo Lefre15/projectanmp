@@ -1,6 +1,5 @@
 package com.example.projectanmp.view
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -9,11 +8,10 @@ import com.example.projectanmp.databinding.ItemHabitCardBinding
 import com.example.projectanmp.model.Habit
 
 class HabitAdapter(
-    private val context: Context,
     private var habitList: MutableList<Habit>,
-    private val onIncrement: (String) -> Unit,
-    private val onDecrement: (String) -> Unit
-) : RecyclerView.Adapter<HabitAdapter.HabitViewHolder>() {
+    private val onIncrement: (Int) -> Unit,
+    private val onDecrement: (Int) -> Unit
+) : RecyclerView.Adapter<HabitAdapter.HabitViewHolder>(), HabitListener {
 
     inner class HabitViewHolder(val binding: ItemHabitCardBinding) :
         RecyclerView.ViewHolder(binding.root)
@@ -29,12 +27,11 @@ class HabitAdapter(
         val habit = habitList[position]
         val binding = holder.binding
 
-        // Set teks
-        binding.habitName.text = habit.name
-        binding.habitDescription.text = habit.description
-        binding.progressCount.text = "${habit.progress} / ${habit.goal} ${habit.unit}"
+        // Data Binding — attribute binding dan listener binding
+        binding.habit = habit
+        binding.listener = this
 
-        // Set icon berdasarkan string icon
+        // Icon
         val iconRes = when (habit.icon) {
             "fitness"  -> R.drawable.baseline_fitness_24
             "water"    -> R.drawable.baseline_water_24
@@ -44,31 +41,30 @@ class HabitAdapter(
         }
         binding.ivHabitIcon.setImageResource(iconRes)
 
-        // Set progress bar
+        // Progress count
+        binding.progressCount.text = "${habit.progress} / ${habit.goal} ${habit.unit}"
+
+        // Status label
         val progress = habit.progress ?: 0
         val goal = habit.goal ?: 1
-        binding.progressBar.max = goal
-        binding.progressBar.progress = progress
-
-        // Set status label
         if (progress >= goal) {
             binding.habitStatus.text = "Completed"
             binding.habitStatus.setBackgroundColor(
-                context.getColor(android.R.color.holo_green_light)
+                holder.itemView.context.getColor(android.R.color.holo_green_light)
             )
         } else {
             binding.habitStatus.text = "In Progress"
             binding.habitStatus.setBackgroundColor(
-                context.getColor(android.R.color.holo_orange_light)
+                holder.itemView.context.getColor(android.R.color.holo_orange_light)
             )
         }
-
-        // Tombol + dan -
-        binding.btnIncrement.setOnClickListener { onIncrement(habit.id ?: "") }
-        binding.btnDecrement.setOnClickListener { onDecrement(habit.id ?: "") }
     }
 
     override fun getItemCount(): Int = habitList.size
+
+    // Implementasi HabitListener — diteruskan ke lambda dari DashboardFragment
+    override fun onIncrement(habit: Habit) { onIncrement(habit.id) }
+    override fun onDecrement(habit: Habit) { onDecrement(habit.id) }
 
     fun updateList(newList: MutableList<Habit>) {
         habitList = newList

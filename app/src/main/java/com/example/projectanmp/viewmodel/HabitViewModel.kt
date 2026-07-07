@@ -1,18 +1,24 @@
 package com.example.projectanmp.viewmodel
 
 import android.app.Application
-import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.projectanmp.model.Habit
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.example.projectanmp.model.HabitDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
-class HabitViewModel(application: Application) : AndroidViewModel(application) {
+class HabitViewModel(application: Application) : AndroidViewModel(application), CoroutineScope {
 
-    private val prefs = application.getSharedPreferences("habit_prefs", Context.MODE_PRIVATE)
-    private val gson = Gson()
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = job + Dispatchers.IO
+
+    private val db = HabitDatabase.getDatabase(application)
 
     private val _habitList = MutableLiveData<MutableList<Habit>>()
     val habitList: LiveData<MutableList<Habit>> get() = _habitList
@@ -21,80 +27,51 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
         loadHabits()
     }
 
-    private fun loadHabits() {
-        val json = prefs.getString("habits", null)
-        if (json != null) {
-            val type = object : TypeToken<MutableList<Habit>>() {}.type
-            _habitList.value = gson.fromJson(json, type)
-        } else {
-            _habitList.value = mutableListOf()
+    fun loadHabits() {
+        launch {
+            val list = db.habitDao().selectAll().toMutableList()
+            _habitList.postValue(list)
         }
     }
 
-    private fun saveHabits() {
-        val json = gson.toJson(_habitList.value)
-        prefs.edit().putString("habits", json).apply()
-    }
-
-    fun addHabit(habit: Habit) {
-        val currentList = _habitList.value ?: mutableListOf()
-        currentList.add(habit)
-        _habitList.value = currentList.toMutableList()
-        saveHabits()
-    }
-
-    fun incrementProgress(habitId: String) {
-        val currentList = _habitList.value ?: return
-        val habit = currentList.find { it.id == habitId } ?: return
-        val goal = habit.goal ?: return
-        if ((habit.progress ?: 0) < goal) {
-            habit.progress = (habit.progress ?: 0) + 1
-            _habitList.value = currentList.toMutableList()
-            saveHabits()
+    fun incrementProgress(habitId: Int) {
+        launch {
+            val habit = db.habitDao().selectById(habitId) ?: return@launch
+            val goal = habit.goal ?: return@launch
+            if ((habit.progress ?: 0) < goal) {
+                habit.progress = (habit.progress ?: 0) + 1
+                db.habitDao().update(habit)
+                loadHabits()
+            }
         }
     }
 
-    fun decrementProgress(habitId: String) {
-        val currentList = _habitList.value ?: return
-        val habit = currentList.find { it.id == habitId } ?: return
-        if ((habit.progress ?: 0) > 0) {
-            habit.progress = (habit.progress ?: 0) - 1
-            _habitList.value = currentList.toMutableList()
-            saveHabits()
+    fun decrementProgress(habitId: Int) {
+        launch {
+            val habit = db.habitDao().selectById(habitId) ?: return@launch
+            if ((habit.progress ?: 0) > 0) {
+                habit.progress = (habit.progress ?: 0) - 1
+                db.habitDao().update(habit)
+                loadHabits()
+            }
         }
     }
 
-    fun createHabit(
-        name: String,
-        desc: String,
-        goalText: String,
-        unit: String,
-        icon: String
-    ): Boolean {
-
-        if (name == "" || desc == "" || goalText == "" || unit == "" || icon == "") {
+    fun createHabit(name: String, desc: String, goalText: String, unit: String, icon: String): Boolean {
+        if (name.isEmpty() || desc.isEmpty() || goalText.isEmpty() || unit.isEmpty() || icon.isEmpty()) {
             return false
         }
-
-        val goal: Int
-
-        try {
-            goal = goalText.toInt()
-        } catch (e: Exception) {
-            return false
+        val goal = goalText.toIntOrNull() ?: return false
+        val habit = Habit(name = name, description = desc, goal = goal, unit = unit, icon = icon, progress = 0)
+        launch {
+            db.habitDao().insert(habit)
+            loadHabits()
         }
-
-        val habit = Habit(
-            id = (_habitList.value!!.size + 1).toString(),
-            name = name,
-            description = desc,
-            goal = goal,
-            unit = unit,
-            icon = icon,
-            progress = 0
-        )
-
-        addHabit(habit)
         return true
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        job.cancel()
     }
 }

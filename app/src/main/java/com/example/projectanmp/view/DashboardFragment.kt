@@ -41,7 +41,6 @@ class DashboardFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter = HabitAdapter(
-            context = requireContext(),
             habitList = mutableListOf(),
             onIncrement = { habitId -> viewModel.incrementProgress(habitId) },
             onDecrement = { habitId -> viewModel.decrementProgress(habitId) }
@@ -53,8 +52,6 @@ class DashboardFragment : Fragment() {
     private fun observeViewModel() {
         viewModel.habitList.observe(viewLifecycleOwner) { list ->
             adapter.updateList(list)
-
-            // Tampilkan empty state jika list kosong
             if (list.isEmpty()) {
                 binding.txtEmpty.visibility = View.VISIBLE
                 binding.recyclerView.visibility = View.GONE
