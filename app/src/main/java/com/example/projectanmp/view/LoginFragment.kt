@@ -27,6 +27,11 @@ class LoginFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this).get(LoginViewModel::class.java)
 
+        if (viewModel.isSessionActive()) {
+            Navigation.findNavController(requireView()).navigate(LoginFragmentDirections.actionDashboardFragment())
+            return
+        }
+
         binding.btnLogin.setOnClickListener {
             val username = binding.txtUsername.text.toString()
             val password = binding.txtPassword.text.toString()
