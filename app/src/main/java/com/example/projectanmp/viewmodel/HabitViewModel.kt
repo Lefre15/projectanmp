@@ -23,6 +23,10 @@ class HabitViewModel(application: Application) : AndroidViewModel(application), 
     private val _habitList = MutableLiveData<MutableList<Habit>>()
     val habitList: LiveData<MutableList<Habit>> get() = _habitList
 
+    private val _selectedHabit = MutableLiveData<Habit>()
+    val selectedHabit: LiveData<Habit>
+        get() = _selectedHabit
+
     init {
         loadHabits()
     }
@@ -31,6 +35,15 @@ class HabitViewModel(application: Application) : AndroidViewModel(application), 
         launch {
             val list = db.habitDao().selectAll().toMutableList()
             _habitList.postValue(list)
+        }
+    }
+
+    fun loadHabit(id: Int) {
+        launch {
+            val habit = db.habitDao().selectById(id)
+            habit?.let {
+                _selectedHabit.postValue(it)
+            }
         }
     }
 
@@ -68,6 +81,13 @@ class HabitViewModel(application: Application) : AndroidViewModel(application), 
             loadHabits()
         }
         return true
+    }
+
+    fun updateHabit(habit: Habit) {
+        launch {
+            db.habitDao().update(habit)
+            loadHabits()
+        }
     }
 
     override fun onCleared() {

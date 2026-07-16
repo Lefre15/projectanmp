@@ -10,7 +10,8 @@ import com.example.projectanmp.model.Habit
 class HabitAdapter(
     private var habitList: MutableList<Habit>,
     private val onIncrement: (Int) -> Unit,
-    private val onDecrement: (Int) -> Unit
+    private val onDecrement: (Int) -> Unit,
+    private val onEdit: (Int) -> Unit
 ) : RecyclerView.Adapter<HabitAdapter.HabitViewHolder>(), HabitListener {
 
     inner class HabitViewHolder(val binding: ItemHabitCardBinding) :
@@ -30,6 +31,10 @@ class HabitAdapter(
         // Data Binding — attribute binding dan listener binding
         binding.habit = habit
         binding.listener = this
+
+        binding.habitName.setOnClickListener {
+            onEdit(habit.id)
+        }
 
         // Icon
         val iconRes = when (habit.icon) {

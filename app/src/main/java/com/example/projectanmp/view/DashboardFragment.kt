@@ -43,7 +43,17 @@ class DashboardFragment : Fragment() {
         adapter = HabitAdapter(
             habitList = mutableListOf(),
             onIncrement = { habitId -> viewModel.incrementProgress(habitId) },
-            onDecrement = { habitId -> viewModel.decrementProgress(habitId) }
+            onDecrement = { habitId -> viewModel.decrementProgress(habitId) },
+            onEdit = { habitId ->
+
+                val bundle = Bundle()
+                bundle.putInt("habitId", habitId)
+
+                findNavController().navigate(
+                    R.id.actionDashboardFragmentToEditHabitFragment,
+                    bundle
+                )
+            }
         )
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
