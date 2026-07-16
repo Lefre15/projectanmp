@@ -17,18 +17,22 @@ class LoginViewModel(application: Application) : AndroidViewModel(application), 
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.IO
     private val db = HabitDatabase.getDatabase(application)
-    private val prefs = application.getSharedPreferences("session_prefs", Application.MODE_PRIVATE)
+
     private val _loginStatus = MutableLiveData<Boolean>()
     val loginStatus: LiveData<Boolean> get() = _loginStatus
 
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> get() = _errorMessage
+    private val _sessionStatus = MutableLiveData<Boolean>()
+    val sessionStatus: LiveData<Boolean> get() = _sessionStatus
 
     fun login(username: String, password: String) {
         launch {
             val user = db.userDao().login(username, password)
             if (user != null) {
-                prefs.edit().putBoolean("is_logged_in", true).apply()
+                db.userDao().logoutAll()
+                user.isLoggedIn = true
+                db.userDao().update(user)
                 _loginStatus.postValue(true)
                 _errorMessage.postValue(null)
             } else {
@@ -37,5 +41,15 @@ class LoginViewModel(application: Application) : AndroidViewModel(application), 
             }
         }
     }
-    fun isSessionActive(): Boolean = prefs.getBoolean("is_logged_in", false)
+    fun checkSession() {
+        launch {
+            val user = db.userDao().getLoggedInUser()
+            _sessionStatus.postValue(user != null)
+        }
+
+    }
+    override fun onCleared() {
+        super.onCleared()
+        job.cancel()
+    }
 }

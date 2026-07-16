@@ -22,7 +22,7 @@ abstract class HabitDatabase : RoomDatabase() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
                 CoroutineScope(Dispatchers.IO).launch {
-                    instance?.userDao()?.insert(User(username = "student", password = "123"))
+                    instance?.userDao()?.insert(User(username = "student", password = "123",isLoggedIn = false))
                 }
             }
         }
