@@ -31,7 +31,8 @@ class EditHabitFragment : Fragment() {
 
         viewModel = ViewModelProvider(requireActivity())[HabitViewModel::class.java]
 
-        val habitId = arguments?.getInt("habitId") ?: 0
+        val args = EditHabitFragmentArgs.fromBundle(requireArguments())
+        val habitId = args.habitId
 
         setupSpinner()
 
